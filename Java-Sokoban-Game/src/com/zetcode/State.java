@@ -84,10 +84,10 @@ public class State implements Comparable {
         board.setState(this);
         updateField();
 
-        System.out.println("REVEALING BACH WITH FIELD");
-        printField();
-        System.out.println("============================================");
-        System.out.println("REVEALING BACH WITH SOKO FREE MOVE");
+//        System.out.println("REVEALING BACH WITH FIELD");
+//        printField();
+//        System.out.println("============================================");
+//        System.out.println("REVEALING BACH WITH SOKO FREE MOVE");
         //слева
         if (field[soko.heightIdx()][soko.widthIdx() - 1] == Cell.FLOOR) {
             State generatedState = new State(board, this, -2, this.field.clone());
@@ -97,7 +97,7 @@ public class State implements Comparable {
             board.move(KeyEvent.VK_LEFT);
             revealedStates.add(generatedState);
 
-            generatedState.printField();
+            //generatedState.printField();
         }
         //справа
         if (field[soko.heightIdx()][soko.widthIdx() + 1] == Cell.FLOOR) {
@@ -108,7 +108,7 @@ public class State implements Comparable {
             board.move(KeyEvent.VK_RIGHT);
             revealedStates.add(generatedState);
 
-            generatedState.printField();
+            //generatedState.printField();
         }
         //сверху
         if (field[soko.heightIdx() - 1][soko.widthIdx()] == Cell.FLOOR) {
@@ -119,7 +119,7 @@ public class State implements Comparable {
             board.move(KeyEvent.VK_UP);
             revealedStates.add(generatedState);
 
-            generatedState.printField();
+            //generatedState.printField();
         }
         //снизу
         if (field[soko.heightIdx() + 1][soko.widthIdx()] == Cell.FLOOR) {
@@ -130,12 +130,12 @@ public class State implements Comparable {
             board.move(KeyEvent.VK_DOWN);
             revealedStates.add(generatedState);
 
-            generatedState.printField();
+            //generatedState.printField();
         }
 
 
-        System.out.println("============================================");
-        System.out.println("REVEALING BACH WITH SOKO NEAR THE BAG");
+        //System.out.println("============================================");
+        //System.out.println("REVEALING BACH WITH SOKO NEAR THE BAG");
         //коробки
         //слева
         if (field[soko.heightIdx()][soko.widthIdx() - 1] == Cell.BAGGAGE) {
@@ -144,7 +144,7 @@ public class State implements Comparable {
                 Baggage bag = push.findBaggageByCoord(soko.heightIdx(), soko.widthIdx() - 1);
                 bag.move(0, 1);
                 push.updateField();
-                push.printField();
+                //push.printField();
                 revealedStates.add(push);
             }
         }
@@ -156,7 +156,7 @@ public class State implements Comparable {
                 Baggage bag = push.findBaggageByCoord(soko.heightIdx(), soko.widthIdx() + 1);
                 bag.move(0, -1);
                 push.updateField();
-                push.printField();
+                //push.printField();
                 revealedStates.add(push);
             }
         }
@@ -167,7 +167,7 @@ public class State implements Comparable {
                 Baggage bag = push.findBaggageByCoord(soko.heightIdx() - 1, soko.widthIdx());
                 bag.move(1, 0);
                 push.updateField();
-                push.printField();
+                //push.printField();
                 revealedStates.add(push);
             }
         }
@@ -178,12 +178,12 @@ public class State implements Comparable {
                 Baggage bag = push.findBaggageByCoord(soko.heightIdx() + 1, soko.widthIdx());
                 bag.move(-1, 0);
                 push.updateField();
-                push.printField();
+                //push.printField();
                 revealedStates.add(push);
             }
         }
 
-        System.out.println("============================================");
+        //System.out.println("============================================");
         return revealedStates;
 
     }
@@ -290,6 +290,14 @@ public class State implements Comparable {
 
     public Stack<Integer> getSolutionPath(Stack<Integer> solutionPath) {
         solutionPath.push(this.generatedByStep);
+        if (parent == null) {
+            return solutionPath;
+        }
+        return parent.getSolutionPath(solutionPath);
+    }
+
+    public List<State> getSolutionPath(List<State> solutionPath) {
+        solutionPath.add(this);
         if (parent == null) {
             return solutionPath;
         }

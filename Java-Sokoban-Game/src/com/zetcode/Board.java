@@ -4,10 +4,7 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 import javax.swing.JPanel;
 
 public class Board extends JPanel {
@@ -20,6 +17,7 @@ public class Board extends JPanel {
     private final int BOTTOM_COLLISION = 4;
 
 
+    Iterator<State> iteratorOnSolution;
 
     private ArrayList<Wall> walls;
     private ArrayList<Area> areas;
@@ -27,6 +25,7 @@ public class Board extends JPanel {
     private State state;
 
     private  Stack<Integer> solutionStack;
+    private List<State> solutionList;
 
     public State getState() {
         return state;
@@ -54,26 +53,26 @@ public class Board extends JPanel {
 //            + "    ##     #########\n"
 //            + "    ########\n";
 
-//    private String level
-//            = "    ######\n"
-//            + "    ##   #\n"
-//            + "    ######\n"
-//            + "  ####  ##\n"
-//            + "  ##  $   #\n"
-//            + "#### # ## #   #####\n"
-//            + "##   # ## #####  .#\n"
-//            + "## $  $          .#\n"
-//            + "###### ### #@##  .#\n"
-//            + "    ##     ########\n"
-//            + "    ########\n";
-
     private String[] level
-            = {"##################\n"
-              ,"##         @  $ .#\n"
-              ,"############     #\n"
-              ,"##         #     #\n"
-              ,"##         #     #\n"
-              ,"##################\n"};
+            ={"    ######         \n"
+             ,"    ##   #         \n"
+             ,"    ######         \n"
+             ,"  ####  ##         \n"
+             ,"  ##  $   #        \n"
+             ,"#### # ## #   #####\n"
+             ,"##   # ## #####  .#\n"
+             ,"## $             .#\n"
+             ,"###### ### #@##   #\n"
+             ,"    ##     ########\n"
+             ,"    ########       \n"};
+
+//    private String[] level
+//            = {"##################\n"
+//              ,"##         @  $ .#\n"
+//              ,"############  $ .#\n"
+//              ,"##         #  $ .#\n"
+//              ,"##         #  $ .#\n"
+//              ,"##################\n"};
 
     public Board() {
 
@@ -335,6 +334,12 @@ public class Board extends JPanel {
         this.solutionStack = solutionStack;
     }
 
+    public void addSolution(List<State> solutionList) {
+        this.solutionList = solutionList;
+        this.iteratorOnSolution = solutionList.iterator();
+        this.state = iteratorOnSolution.next();
+    }
+
     public ArrayList<Wall> getWalls() {
         return walls;
     }
@@ -404,8 +409,8 @@ public class Board extends JPanel {
 
     private void stepBySolution(int key) {
         if (key == KeyEvent.VK_C){
-            if (!solutionStack.empty()){
-                move(solutionStack.pop());
+            if (iteratorOnSolution.hasNext()){
+                this.state = iteratorOnSolution.next();
             }
         }
     }

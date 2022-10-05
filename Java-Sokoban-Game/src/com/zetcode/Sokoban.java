@@ -19,22 +19,23 @@ public class Sokoban extends JFrame {
         Board board = new Board();
         add(board);
 
-        List<State> goalStates = board.generateGoalStates();
-        goalStates.forEach(state -> state.printField());
-        goalStates.forEach(state -> state.revealBackState());
-//        StateSpace stateSpace = new StateSpace(board);
-//        long time = System.currentTimeMillis();
-//        Stack<Integer> solutionStack = stateSpace.getSolution();
-//        System.out.println("RESULTS");
-//        System.out.println("Finished for = " + (System.currentTimeMillis() - time) + " millis");
-//        System.out.println("Iterations = " + stateSpace.iterations);
-//        System.out.println("Steps count = " + solutionStack.size());
-//        System.out.println("Revealing count = " + stateSpace.revealingCount);
-//        System.out.println("Revealed states = " + stateSpace.revealedStatesCount);
-//        System.out.println("Max states count = " + stateSpace.maxStatesCount);
-//        System.out.println("Max opened states = " + stateSpace.maxOpenCount);
-//        System.out.println("Max closed states = " + stateSpace.maxCloseCount);
-//        board.addSolution(solutionStack);
+        StateSpace stateSpace = new StateSpace(board);
+        long time = System.currentTimeMillis();
+        List<State> solution = stateSpace.getSolution();
+
+
+        System.out.println("RESULTS");
+        solution.forEach(state -> state.getSoko().loadImage());
+        solution.forEach(state -> state.getBaggs().forEach(baggage -> baggage.loadImage()));
+        System.out.println("Finished for = " + (System.currentTimeMillis() - time) + " millis");
+        System.out.println("Iterations = " + stateSpace.iterations);
+        System.out.println("Steps count = " + solution.size());
+        System.out.println("Revealing count = " + stateSpace.revealingCount);
+        System.out.println("Revealed states = " + stateSpace.revealedStatesCount);
+        System.out.println("Max states count = " + stateSpace.maxStatesCount);
+        System.out.println("Max opened states = " + stateSpace.maxOpenCount);
+        System.out.println("Max closed states = " + stateSpace.maxCloseCount);
+        board.addSolution(solution);
 
         setTitle("Sokoban");
         setSize(board.getBoardWidth() + OFFSET,
