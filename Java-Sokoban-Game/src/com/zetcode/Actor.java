@@ -1,20 +1,28 @@
 package com.zetcode;
 
 import java.awt.Image;
-import java.util.Objects;
 
 public class Actor implements Cloneable {
 
     private final int SPACE = 20;
 
-    private int x;
-    private int y;
+    private Cell standsOn;
+    private int heightIdx;
+    private int widthIdx;
     private Image image;
 
-    public Actor(int x, int y) {
-        
-        this.x = x;
-        this.y = y;
+    public Actor(int heightIdx, int widthIdx, Cell standsOn) {
+        this.standsOn = standsOn;
+        this.heightIdx = heightIdx;
+        this.widthIdx = widthIdx;
+    }
+
+    public Cell getStandsOn() {
+        return standsOn;
+    }
+
+    public void setStandsOn(Cell standsOn) {
+        this.standsOn = standsOn;
     }
 
     public Image getImage() {
@@ -25,49 +33,50 @@ public class Actor implements Cloneable {
         image = img;
     }
 
-    public int x() {
+    public int heightIdx() {
         
-        return x;
+        return heightIdx;
     }
 
-    public int y() {
+    public int widthIdx() {
         
-        return y;
+        return widthIdx;
     }
 
-    public void setX(int x) {
+    public void setHeightIdx(int heightIdx) {
         
-        this.x = x;
+        this.heightIdx = heightIdx;
     }
 
-    public void setY(int y) {
+    public void setWidthIdx(int widthIdx) {
         
-        this.y = y;
+        this.widthIdx = widthIdx;
     }
 
     public boolean isLeftCollision(Actor actor) {
         
-        return x() - SPACE == actor.x() && y() == actor.y();
+        return widthIdx() - 1 == actor.widthIdx() && heightIdx() == actor.heightIdx();
     }
 
     public boolean isRightCollision(Actor actor) {
         
-        return x() + SPACE == actor.x() && y() == actor.y();
+        return widthIdx() + 1 == actor.widthIdx() && heightIdx() == actor.heightIdx();
     }
 
     public boolean isTopCollision(Actor actor) {
-        
-        return y() - SPACE == actor.y() && x() == actor.x();
+
+        boolean col = heightIdx() - 1 == actor.heightIdx() && widthIdx() == actor.widthIdx();
+        return heightIdx() - 1 == actor.heightIdx() && widthIdx() == actor.widthIdx();
     }
 
     public boolean isBottomCollision(Actor actor) {
         
-        return y() + SPACE == actor.y() && x() == actor.x();
+        return heightIdx() + 1 == actor.heightIdx() && widthIdx() == actor.widthIdx();
     }
 
     @Override
     public Actor clone() {
-        return new Actor(this.x, this.y);
+        return new Actor(this.heightIdx, this.widthIdx, this.standsOn);
     }
 
     @Override
@@ -75,14 +84,14 @@ public class Actor implements Cloneable {
         if (this == o) return true;
         if (!(o instanceof Actor)) return false;
         Actor actor = (Actor) o;
-        return x == actor.x && y == actor.y;
+        return heightIdx == actor.heightIdx && widthIdx == actor.widthIdx;
     }
 
     @Override
     public String toString() {
         return "Actor{" +
-                "x=" + x +
-                ", y=" + y +
+                "x=" + heightIdx +
+                ", y=" + widthIdx +
                 '}';
     }
 }

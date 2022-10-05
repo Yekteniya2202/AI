@@ -5,8 +5,8 @@ import javax.swing.ImageIcon;
 
 public class Area extends Actor {
 
-    public Area(int x, int y) {
-        super(x, y);
+    public Area(int x, int y, Cell standsOn) {
+        super(x, y, standsOn);
         
         initArea();
     }

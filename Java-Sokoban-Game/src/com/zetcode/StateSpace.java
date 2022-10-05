@@ -44,6 +44,9 @@ public class StateSpace {
         open.add(initialState);
         openSet.add(initialState);
 
+        List<State> goalStates = board.generateGoalStates();
+
+
         while (open.size() != 0) {
             iterations++;
             if (open.size() > maxOpenCount){

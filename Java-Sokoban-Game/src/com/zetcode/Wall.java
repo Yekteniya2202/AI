@@ -7,8 +7,8 @@ public class Wall extends Actor {
 
     private Image image;
 
-    public Wall(int x, int y) {
-        super(x, y);
+    public Wall(int heightIdx, int widthIdx, Cell standsOn) {
+        super(heightIdx, widthIdx, standsOn);
         
         initWall();
     }

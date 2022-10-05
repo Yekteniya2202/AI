@@ -5,6 +5,8 @@ import java.awt.Graphics;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Stack;
 import javax.swing.JPanel;
 
@@ -16,6 +18,8 @@ public class Board extends JPanel {
     private final int RIGHT_COLLISION = 2;
     private final int TOP_COLLISION = 3;
     private final int BOTTOM_COLLISION = 4;
+
+
 
     private ArrayList<Wall> walls;
     private ArrayList<Area> areas;
@@ -63,13 +67,13 @@ public class Board extends JPanel {
 //            + "    ##     ########\n"
 //            + "    ########\n";
 
-    private String level
-            = "##################\n"
-            + "##         @  $ .#\n"
-            + "############  $ .#\n"
-            + "##         #  $ .#\n"
-            + "##         #  $ .#\n"
-            + "##################\n";
+    private String[] level
+            = {"##################\n"
+              ,"##         @  $ .#\n"
+              ,"############     #\n"
+              ,"##         #     #\n"
+              ,"##         #     #\n"
+              ,"##################\n"};
 
     public Board() {
 
@@ -80,8 +84,9 @@ public class Board extends JPanel {
 
         addKeyListener(new TAdapter());
         setFocusable(true);
-        state = new State(this, null, Integer.MIN_VALUE);
+        state = new State(this, null, Integer.MIN_VALUE, null);
         initWorld();
+        state.printField();
     }
 
     public int getBoardWidth() {
@@ -92,66 +97,59 @@ public class Board extends JPanel {
         return this.h;
     }
 
+
+
     private void initWorld() {
 
         walls = new ArrayList<>();
         areas = new ArrayList<>();
 
-        int x = OFFSET;
-        int y = OFFSET;
-
         Wall wall;
         Baggage b;
         Area a;
 
-        for (int i = 0; i < level.length(); i++) {
+        int height = level.length;
+        int width = level[0].length();
 
-            char item = level.charAt(i);
+        state.setField(new Cell[height][width - 1]);
 
-            switch (item) {
+        for(int j = 0; j < height; j++) {
+            for (int i = 0; i < width; i++) {
 
-                case '\n':
-                    y += SPACE;
+                char item = level[j].charAt(i);
 
-                    if (this.w < x) {
-                        this.w = x;
-                    }
+                switch (item) {
+                    case '#':
+                        wall = new Wall(j, i, Cell.WALL);
+                        walls.add(wall);
+                        state.getField()[j][i] = Cell.WALL;
+                        break;
 
-                    x = OFFSET;
-                    break;
+                    case '$':
+                        b = new Baggage(j, i, Cell.FLOOR);
+                        state.getBaggs().add(b);
+                        state.getField()[j][i] = Cell.BAGGAGE;
+                        break;
 
-                case '#':
-                    wall = new Wall(x, y);
-                    walls.add(wall);
-                    x += SPACE;
-                    break;
+                    case '.':
+                        a = new Area(j, i, Cell.FLOOR);
+                        areas.add(a);
+                        state.getField()[j][i] = Cell.AREA;
+                        break;
 
-                case '$':
-                    b = new Baggage(x, y);
-                    state.getBaggs().add(b);
-                    x += SPACE;
-                    break;
+                    case '@':
+                        state.setSoko(new Player(j, i, Cell.FLOOR));
+                        state.getField()[j][i] = Cell.SOKO;
+                        break;
 
-                case '.':
-                    a = new Area(x, y);
-                    areas.add(a);
-                    x += SPACE;
-                    break;
+                    case ' ':
+                        state.getField()[j][i] = Cell.FLOOR;
+                        break;
 
-                case '@':
-                    state.setSoko(new Player(x, y));
-                    x += SPACE;
-                    break;
-
-                case ' ':
-                    x += SPACE;
-                    break;
-
-                default:
-                    break;
+                    default:
+                        break;
+                }
             }
-
-            h = y;
         }
     }
 
@@ -173,13 +171,13 @@ public class Board extends JPanel {
 
             if (item instanceof Player || item instanceof Baggage) {
 
-                g.drawImage(item.getImage(), item.x() + 2, item.y() + 2, this);
+                g.drawImage(item.getImage(), item.widthIdx() * SPACE, item.heightIdx() * SPACE, this);
             } else {
 
-                g.drawImage(item.getImage(), item.x(), item.y(), this);
+                g.drawImage(item.getImage(), item.widthIdx() * SPACE, item.heightIdx() * SPACE, this);
             }
 
-            if (isCompleted) {
+            if (isCompleted(this.state)) {
 
                 g.setColor(new Color(0, 0, 0));
                 g.drawString("Completed", 25, 20);
@@ -251,8 +249,8 @@ public class Board extends JPanel {
     }
 
     public void move(int key) {
+        Cell toBeVisited;
         switch (key) {
-
             case KeyEvent.VK_LEFT:
 
                 if (checkWallCollision(state.getSoko(), LEFT_COLLISION)) {
@@ -263,7 +261,11 @@ public class Board extends JPanel {
                     return;
                 }
 
-                state.getSoko().move(-SPACE, 0);
+
+                toBeVisited = state.getField()[state.getSoko().heightIdx()][state.getSoko().widthIdx() - 1];
+                state.getSoko().move(0, -1);
+                state.getSoko().setStandsOn(toBeVisited);
+                state.updateField();
 
                 break;
 
@@ -277,8 +279,11 @@ public class Board extends JPanel {
                     return;
                 }
 
-                state.getSoko().move(SPACE, 0);
 
+                toBeVisited = state.getField()[state.getSoko().heightIdx()][state.getSoko().widthIdx() + 1];
+                state.getSoko().move(0, 1);
+                state.getSoko().setStandsOn(toBeVisited);
+                state.updateField();
                 break;
 
             case KeyEvent.VK_UP:
@@ -291,8 +296,11 @@ public class Board extends JPanel {
                     return;
                 }
 
-                state.getSoko().move(0, -SPACE);
 
+                toBeVisited = state.getField()[state.getSoko().heightIdx() - 1][state.getSoko().widthIdx()];
+                state.getSoko().move(-1, 0);
+                state.getSoko().setStandsOn(toBeVisited);
+                state.updateField();
                 break;
 
             case KeyEvent.VK_DOWN:
@@ -305,8 +313,11 @@ public class Board extends JPanel {
                     return;
                 }
 
-                state.getSoko().move(0, SPACE);
 
+                toBeVisited = state.getField()[state.getSoko().heightIdx() + 1][state.getSoko().widthIdx()];
+                state.getSoko().move(1, 0);
+                state.getSoko().setStandsOn(toBeVisited);
+                state.updateField();
                 break;
 
             case KeyEvent.VK_R:
@@ -324,20 +335,70 @@ public class Board extends JPanel {
         this.solutionStack = solutionStack;
     }
 
+    public ArrayList<Wall> getWalls() {
+        return walls;
+    }
+
+    public ArrayList<Area> getAreas() {
+        return areas;
+    }
+
+    public List<State> generateGoalStates() {
+        List<State> goalStates = new ArrayList<>();
+        ArrayList<Baggage> baggagesOnAreas = new ArrayList<>();
+        for(Area area : areas){
+            baggagesOnAreas.add(new Baggage(area.heightIdx(), area.widthIdx(), Cell.AREA));
+        }
+
+        for(Baggage baggage : baggagesOnAreas){
+
+            if (state.getField()[baggage.heightIdx() - 1][baggage.widthIdx()] == Cell.FLOOR) {
+                State newState = new State(this, null, -1, state.getField().clone());
+                newState.setBaggs(baggagesOnAreas);
+                Player player = new Player(baggage.heightIdx() - 1, baggage.widthIdx(), Cell.FLOOR);
+                newState.setSoko(player);
+                goalStates.add(newState);
+            }
+            if (state.getField()[baggage.heightIdx() + 1][baggage.widthIdx()] == Cell.FLOOR) {
+                State newState = new State(this, null, -1, state.getField().clone());
+                newState.setBaggs(baggagesOnAreas);
+                Player player = new Player(baggage.heightIdx() + 1, baggage.widthIdx(), Cell.FLOOR);
+                newState.setSoko(player);
+                goalStates.add(newState);
+            }
+            if (state.getField()[baggage.heightIdx()][baggage.widthIdx() - 1] == Cell.FLOOR) {
+                State newState = new State(this, null, -1, state.getField().clone());
+                newState.setBaggs(baggagesOnAreas);
+                Player player = new Player(baggage.heightIdx(), baggage.widthIdx() - 1, Cell.FLOOR);
+                newState.setSoko(player);
+                goalStates.add(newState);
+            }
+            if (state.getField()[baggage.heightIdx()][baggage.widthIdx() + 1] == Cell.FLOOR) {
+                State newState = new State(this, null, -1, state.getField().clone());
+                newState.setBaggs(baggagesOnAreas);
+                Player player = new Player(baggage.heightIdx(), baggage.widthIdx() + 1, Cell.FLOOR);
+                newState.setSoko(player);
+                goalStates.add(newState);
+            }
+        }
+        goalStates.forEach(state1 -> state1.updateField());
+
+        return goalStates;
+
+    }
+
     private class TAdapter extends KeyAdapter {
 
         @Override
         public void keyPressed(KeyEvent e) {
-
             if (isCompleted) {
                 return;
             }
-
-
             int key = e.getKeyCode();
             move(key);
             stepBySolution(key);
             repaint();
+            state.printField();
         }
     }
 
@@ -387,7 +448,6 @@ public class Board extends JPanel {
                     Wall wall = walls.get(i);
 
                     if (actor.isTopCollision(wall)) {
-
                         return true;
                     }
                 }
@@ -538,6 +598,7 @@ public class Board extends JPanel {
     }
     private boolean checkBagCollisionAndMove(int type) {
 
+        Cell toBeVisited;
         switch (type) {
 
             case LEFT_COLLISION:
@@ -564,7 +625,11 @@ public class Board extends JPanel {
                             }
                         }
 
-                        bag.move(-SPACE, 0);
+
+                        toBeVisited = state.getField()[bag.heightIdx()][bag.widthIdx() - 1];
+                        bag.move(0, -1);
+                        bag.setStandsOn(toBeVisited);
+                        state.updateField();
                     }
                 }
 
@@ -594,7 +659,10 @@ public class Board extends JPanel {
                             }
                         }
 
-                        bag.move(SPACE, 0);
+                        toBeVisited = state.getField()[bag.heightIdx()][bag.widthIdx() + 1];
+                        bag.move(0, 1);
+                        bag.setStandsOn(toBeVisited);
+                        state.updateField();
                     }
                 }
                 return false;
@@ -623,7 +691,10 @@ public class Board extends JPanel {
                             }
                         }
 
-                        bag.move(0, -SPACE);
+                        toBeVisited = state.getField()[bag.heightIdx() - 1][bag.widthIdx()];
+                        bag.move(-1, 0);
+                        bag.setStandsOn(toBeVisited);
+                        state.updateField();
                     }
                 }
 
@@ -654,7 +725,10 @@ public class Board extends JPanel {
                             }
                         }
 
-                        bag.move(0, SPACE);
+                        toBeVisited = state.getField()[bag.heightIdx() + 1][bag.widthIdx()];
+                        bag.move(1, 0);
+                        bag.setStandsOn(toBeVisited);
+                        state.updateField();
                     }
                 }
 
@@ -707,7 +781,7 @@ public class Board extends JPanel {
 
                 Area area = areas.get(j);
 
-                if (bag.x() == area.x() && bag.y() == area.y()) {
+                if (bag.heightIdx() == area.heightIdx() && bag.widthIdx() == area.widthIdx()) {
 
                     finishedBags += 1;
                 }

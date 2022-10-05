@@ -5,14 +5,14 @@ import javax.swing.ImageIcon;
 
 public class Baggage extends Actor {
 
-    public Baggage(int x, int y) {
-        super(x, y);
+    public Baggage(int heightIdx, int widthIdx, Cell standsOn ) {
+        super(heightIdx, widthIdx, standsOn);
 
         initBaggage();
     }
 
-    public Baggage(int x, int y, boolean imageNeeded) {
-        super(x, y);
+    public Baggage(int heightIdx, int widthIdx, boolean imageNeeded, Cell standsOn) {
+        super(heightIdx, widthIdx, standsOn);
 
         if (imageNeeded)
             initBaggage();
@@ -25,25 +25,25 @@ public class Baggage extends Actor {
         setImage(image);
     }
 
-    public void move(int x, int y) {
+    public void move(int heightIdx, int widthIdx) {
 
-        int dx = x() + x;
-        int dy = y() + y;
+        int dx = heightIdx() + heightIdx;
+        int dy = widthIdx() + widthIdx;
 
-        setX(dx);
-        setY(dy);
+        setHeightIdx(dx);
+        setWidthIdx(dy);
     }
 
     @Override
     public String toString() {
         return "Baggage{" +
-                "x= " + super.x() +
-                ", y= " + super.y() +
+                "x= " + super.heightIdx() +
+                ", y= " + super.widthIdx() +
                 "}";
     }
 
     @Override
     public Baggage clone() {
-        return new Baggage(super.x(), super.y(), false);
+        return new Baggage(super.heightIdx(), super.widthIdx(), super.getStandsOn());
     }
 }
