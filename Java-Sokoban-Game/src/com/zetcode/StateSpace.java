@@ -18,17 +18,12 @@ import java.util.function.Predicate;
 public class StateSpace {
     private Board board;
 
-    private Stack<State> open = new Stack<>();
+    private PriorityQueue<State> open = new PriorityQueue<>(State::compareTo);
 
-    private Set<State> openSet = new HashSet<>(1000000);
-
-    private Stack<State> openBack = new Stack<>();
-
-    private Set<State> openSetBack = new HashSet<>(1000000);
+    private Map<State, State> openSet = new HashMap<>(1000000);
 
     private Map<State, State> closed = new HashMap<>(1000000);
 
-    private Map<State, State> closedBack = new HashMap<>(1000000);
 
     private Stack<Integer> solutionPath = new Stack<>();
 
@@ -49,37 +44,31 @@ public class StateSpace {
         State initialState = board.getState();
         System.out.println(initialState);
         open.add(initialState);
-        openSet.add(initialState);
+        openSet.put(initialState, initialState);
 
-        List<State> goalStates = board.generateGoalStates();
-        goalStates.forEach(state -> openBack.add(state));
-        goalStates.forEach(state -> openSetBack.add(state));
-
-        while (open.size() != 0 || openBack.size() != 0) {
+        while (open.size() != 0) {
             iterations++;
             if (open.size() > maxOpenCount){
                 maxOpenCount = open.size();
             }
 
-            if (openBack.size() > maxOpenCount){
-                maxOpenCount = openBack.size();
-            }
-
-            int sum = open.size() + closed.size() + openBack.size() + closedBack.size();
+            int sum = open.size() + closed.size();
             if (sum > maxStatesCount){
                 maxStatesCount = sum;
             }
 
 
-            State state = open.pop();
+            State state = open.poll();
 
-//            if (state.isCompleted()) {
-//                board.setState(initialState);
-//                System.out.println(closed.size());
-//                System.out.println(state);
-//                maxCloseCount = closed.size();
-//                return state.getSolutionPath(solutionPath);
-//            }
+            if (state.isCompleted()) {
+                board.setState(initialState);
+                System.out.println(closed.size());
+                System.out.println(state);
+                maxCloseCount = closed.size();
+                List<State> solution = state.getSolutionPath(new ArrayList<>());
+                Collections.reverse(solution);
+                return solution;
+            }
 
             closed.put(state, state);
             openSet.remove(state);
@@ -87,53 +76,29 @@ public class StateSpace {
             List<State> revealedStates = state.revealState();
             revealingCount++;
             revealedStatesCount += revealedStates.size();
+            revealedStates.forEach(state1 -> state1.setF(state1.f()));
+
 
             for (State childState : revealedStates) {
-
-                if (!openSet.contains(childState) && !closed.containsKey(childState)) {
-                    open.push(childState);
-                    openSet.add(childState);
+                State inOpen = openSet.get(childState);
+                State inClosed = closed.get(childState);
+                if (inOpen == null && inClosed == null) {
+                    open.add(childState);
+                    openSet.put(childState, childState);
+                }
+                else if (inOpen != null && childState.getF() < inOpen.getF()) {
+                    openSet.get(childState).setF(childState.f());
+                    openSet.get(childState).setParent(state);
+                }
+                else if (inClosed != null && childState.getF() < inClosed.getF()) {
+                    closed.remove(childState);
+                    openSet.put(childState, childState);
+                    openSet.get(childState).setF(childState.f());
+                    openSet.get(childState).setParent(state);
                 }
             }
-
-            State stateBack = openBack.pop();
-            openSetBack.remove(stateBack);
-            closedBack.put(stateBack, stateBack);
-            //встретились
-            //восстановить цепочку
-            if (closed.containsKey(stateBack)) {
-                maxCloseCount += closed.size() + closedBack.size();
-                State forwardEndState = closed.get(stateBack);
-                State backwardEndState = stateBack;
-                List<State> forwardList = forwardEndState.getSolutionPath(new ArrayList<>());
-                List<State> backwardList = backwardEndState.getSolutionPath(new ArrayList<>());
-
-                System.out.println("FORWARD");
-                Collections.reverse(forwardList);
-                forwardList.remove(forwardList.size() - 1);
-                forwardList.forEach(state1 -> state1.printField());
-
-                System.out.println("BACKWARD");
-                backwardList.forEach(state1 -> state1.printField());
-
-                forwardList.addAll(backwardList);
-
-                return forwardList;
-            }
-
-            List<State> revealedBackStates = stateBack.revealBackState();
-            revealingCount++;
-            revealedStatesCount += revealedBackStates.size();
-            for (State childBackState : revealedBackStates) {
-
-                if (!openSetBack.contains(childBackState) && !closedBack.containsKey(childBackState)) {
-                    openBack.push(childBackState);
-                    openSetBack.add(childBackState);
-                }
-            }
-
         }
         board.setState(initialState);
-        return new Stack<>();
+        return new ArrayList<>();
     }
 }

@@ -5,7 +5,7 @@ import javax.swing.ImageIcon;
 
 public class Baggage extends Actor {
 
-    public Baggage(int heightIdx, int widthIdx, Cell standsOn ) {
+    public Baggage(int heightIdx, int widthIdx, Cell standsOn) {
         super(heightIdx, widthIdx, standsOn);
 
         initBaggage();
@@ -48,6 +48,6 @@ public class Baggage extends Actor {
 
     @Override
     public Baggage clone() {
-        return new Baggage(super.heightIdx(), super.widthIdx(), super.getStandsOn());
+        return new Baggage(super.heightIdx(), super.widthIdx(), false, super.getStandsOn());
     }
 }

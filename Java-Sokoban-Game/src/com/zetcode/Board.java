@@ -40,38 +40,37 @@ public class Board extends JPanel {
 
     public boolean isCompleted = false;
 
-//    private String level
-//            = "    ######\n"
-//            + "    ##   #\n"
-//            + "    ##$  #\n"
-//            + "  ####   ##\n"
-//            + "  ##  $   #\n"
-//            + "#### # ## #   ######\n"
-//            + "##   # ## #####   .#\n"
-//            + "## $              .#\n"
-//            + "###### ### #@##   .#\n"
-//            + "    ##     #########\n"
-//            + "    ########\n";
+    private String[] level = {
+             "    ######          \n"
+            ,"    ##   #          \n"
+            ,"    ##$  #          \n"
+            ,"  ####   ##         \n"
+            ,"  ##  $   #         \n"
+            ,"#### # ## #   ######\n"
+            ,"##   # ## #####   .#\n"
+            ,"## $          $   .#\n"
+            ,"############@##  ..#\n"
+            ,"    ##     #########\n"
+            ,"    ########        \n"};
 
-    private String[] level
-            ={"    ######         \n"
-             ,"    ##   #         \n"
-             ,"    ######         \n"
-             ,"  ####  ##         \n"
-             ,"  ##  $   #        \n"
-             ,"#### # ## #   #####\n"
-             ,"##   # ## #####  .#\n"
-             ,"## $             .#\n"
-             ,"###### ### #@##   #\n"
-             ,"    ##     ########\n"
-             ,"    ########       \n"};
+//    private String[] level
+//            ={"    ######         \n"
+//             ,"    ##   #         \n"
+//             ,"    ######         \n"
+//             ,"  ####   #         \n"
+//             ,"  ##  $   #        \n"
+//             ,"#### # ## #   #####\n"
+//             ,"##   # ## #####  .#\n"
+//             ,"## $         $   .#\n"
+//             ,"###### ### #@##  .#\n"
+//             ,"    ##     ########\n"
+//             ,"    ########       \n"};
 
 //    private String[] level
 //            = {"##################\n"
 //              ,"##         @  $ .#\n"
-//              ,"############  $ .#\n"
-//              ,"##         #  $ .#\n"
-//              ,"##         #  $ .#\n"
+//              ,"##       $      .#\n"
+//              ,"##    $         .#\n"
 //              ,"##################\n"};
 
     public Board() {
@@ -85,6 +84,8 @@ public class Board extends JPanel {
         setFocusable(true);
         state = new State(this, null, Integer.MIN_VALUE, null);
         initWorld();
+        State.startingBaggages = (ArrayList<Baggage>) State.cloneBaggages(this.getState().getBaggs());
+        State.areas = areas;
         state.printField();
     }
 
@@ -776,20 +777,12 @@ public class Board extends JPanel {
     public boolean isCompleted(State checkState) {
 
         int nOfBags = checkState.getBaggs().size();
+        ArrayList<Baggage> baggages = checkState.getBaggs();
         int finishedBags = 0;
 
         for (int i = 0; i < nOfBags; i++) {
-
-            Baggage bag = checkState.getBaggs().get(i);
-
-            for (int j = 0; j < nOfBags; j++) {
-
-                Area area = areas.get(j);
-
-                if (bag.heightIdx() == area.heightIdx() && bag.widthIdx() == area.widthIdx()) {
-
-                    finishedBags += 1;
-                }
+            if (baggages.get(i).widthIdx() == areas.get(i).widthIdx() && baggages.get(i).heightIdx() == areas.get(i).heightIdx()){
+                finishedBags++;
             }
         }
 
