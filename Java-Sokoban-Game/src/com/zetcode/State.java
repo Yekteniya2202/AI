@@ -2,6 +2,7 @@ package com.zetcode;
 
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Stack;
 
@@ -12,6 +13,7 @@ public class State implements Comparable {
 
 
     public static ArrayList<Baggage> startingBaggages;
+
     public static ArrayList<Area> areas;
 
     public int generatedByStep = Integer.MIN_VALUE;
@@ -60,7 +62,8 @@ public class State implements Comparable {
     public List<State> revealState() {
         List<State> revealedStates = new ArrayList<>();
         board.setState(this);
-        if (board.canMove(KeyEvent.VK_UP) && !isCompleted()) { //38
+        if (isCompleted()) return revealedStates;
+        if (board.canMove(KeyEvent.VK_UP)) { //38
             State generatedState = new State(board, this, KeyEvent.VK_UP, this.field.clone(), stepCount + 1);
             generatedState.setBaggs(cloneBaggages(baggs));
             generatedState.setSoko(soko.clone());
@@ -69,7 +72,7 @@ public class State implements Comparable {
             revealedStates.add(generatedState);
         }
         board.setState(this);
-        if (board.canMove(KeyEvent.VK_DOWN) && !isCompleted()) { //40
+        if (board.canMove(KeyEvent.VK_DOWN)) { //40
             State generatedState = new State(board, this, KeyEvent.VK_DOWN, this.field.clone(), stepCount + 1);
             generatedState.setBaggs(cloneBaggages(baggs));
             generatedState.setSoko(soko.clone());
@@ -78,7 +81,7 @@ public class State implements Comparable {
             revealedStates.add(generatedState);
         }
         board.setState(this);
-        if (board.canMove(KeyEvent.VK_LEFT) && !isCompleted()) { //37
+        if (board.canMove(KeyEvent.VK_LEFT)) { //37
             State generatedState = new State(board, this, KeyEvent.VK_LEFT, this.field.clone(), stepCount + 1);
             generatedState.setBaggs(cloneBaggages(baggs));
             generatedState.setSoko(soko.clone());
@@ -87,7 +90,7 @@ public class State implements Comparable {
             revealedStates.add(generatedState);
         }
         board.setState(this);
-        if (board.canMove(KeyEvent.VK_RIGHT) && !isCompleted()) {//39
+        if (board.canMove(KeyEvent.VK_RIGHT)) {//39
             State generatedState = new State(board, this, KeyEvent.VK_RIGHT, this.field.clone(), stepCount + 1);
             generatedState.setBaggs(cloneBaggages(baggs));
             generatedState.setSoko(soko.clone());
@@ -96,6 +99,17 @@ public class State implements Comparable {
             revealedStates.add(generatedState);
         }
         return revealedStates;
+    }
+
+    private boolean sokoHasBaggNeighbor() {
+        for (Baggage bag: baggs) {
+            if (soko.heightIdx() + 1 == bag.heightIdx() && soko.widthIdx() == bag.widthIdx()  ||
+                soko.heightIdx() - 1 == bag.heightIdx() && soko.widthIdx() == bag.widthIdx()  ||
+                soko.widthIdx() + 1 == bag.widthIdx() && soko.heightIdx() == bag.heightIdx()  ||
+                soko.widthIdx() + 1 == bag.widthIdx() && soko.heightIdx() == bag.heightIdx() )
+                return true;
+        }
+        return false;
     }
 
     public List<State> revealBackState() {
@@ -209,7 +223,7 @@ public class State implements Comparable {
 
     private Baggage findBaggageByCoord(int h, int w) {
         for (Baggage bag : baggs) {
-            if (bag.heightIdx() == h && bag.widthIdx() == w){
+            if (bag.heightIdx() == h && bag.widthIdx() == w) {
                 return bag;
             }
         }
@@ -227,6 +241,7 @@ public class State implements Comparable {
         }
         return null;
     }
+
     private State revealBackRightSoko() {
         if (field[soko.heightIdx()][soko.widthIdx() + 1] == Cell.FLOOR) {
             State generatedState = new State(board, this, -2, this.field.clone());
@@ -252,6 +267,7 @@ public class State implements Comparable {
 
         return null;
     }
+
     private State revealBackDownSoko() {
         if (field[soko.heightIdx() + 1][soko.widthIdx()] == Cell.FLOOR) {
             State generatedState = new State(board, this, -2, this.field.clone());
@@ -264,8 +280,6 @@ public class State implements Comparable {
 
         return null;
     }
-
-
 
 
     public void updateField() {
@@ -307,8 +321,7 @@ public class State implements Comparable {
     }
 
 
-
-    public void setParent(State parent){
+    public void setParent(State parent) {
         this.parent = parent;
     }
 
@@ -322,14 +335,14 @@ public class State implements Comparable {
         this.f = f;
     }
 
-    public double f(){
-        return h1() + h2();
+    public double f() {
+        return stepCount + h5();
     }
 
     //насколько удалено к конечной позиции
     private double h1() {
         double result = 0;
-        for(int i = 0; i < areas.size(); i++){
+        for (int i = 0; i < areas.size(); i++) {
             result += Math.sqrt(
                     Math.pow(areas.get(i).heightIdx() - baggs.get(i).heightIdx(), 2) +
                             Math.pow(areas.get(i).widthIdx() - baggs.get(i).widthIdx(), 2));
@@ -337,10 +350,19 @@ public class State implements Comparable {
         return result;
     }
 
+    private double h5() {
+        double result = 0;
+        for (Area area : areas) {
+            result += baggs.stream().mapToInt(baggage -> Math.abs(baggage.widthIdx() - area.widthIdx()) + Math.abs(baggage.heightIdx() - area.heightIdx())
+            ).min().orElse(0);
+        }
+        return result;
+    }
+
     private int h2() {
         int result = 0;
-        for(int i = 0; i < baggs.size(); i++){
-            if (baggs.get(i).getStandsOn() != Cell.AREA){
+        for (int i = 0; i < baggs.size(); i++) {
+            if (baggs.get(i).getStandsOn() != Cell.AREA) {
                 result++;
             }
         }
@@ -348,13 +370,22 @@ public class State implements Comparable {
     }
 
     //насколько удалено от начальной позиции
-    private double g() {
-        if (startingBaggages.size() != baggs.size()) throw new RuntimeException("Starting baggs size != current baggs size");
+    private double h3() {
         double result = 0;
-        for(int i = 0; i < startingBaggages.size(); i++){
+        for (int i = 0; i < startingBaggages.size(); i++) {
             result += Math.sqrt(
-                Math.pow(baggs.get(i).heightIdx() - startingBaggages.get(i).heightIdx(), 2) +
-                Math.pow(baggs.get(i).widthIdx() - startingBaggages.get(i).widthIdx(), 2));
+                    Math.pow(baggs.get(i).heightIdx() - startingBaggages.get(i).heightIdx(), 2) +
+                            Math.pow(baggs.get(i).widthIdx() - startingBaggages.get(i).widthIdx(), 2));
+        }
+        return result;
+    }
+
+    private double h4() {
+        double result = 0;
+        for (int i = 0; i < baggs.size(); i++) {
+            result += Math.sqrt(
+                    Math.pow(baggs.get(i).heightIdx() - soko.heightIdx(), 2) +
+                            Math.pow(baggs.get(i).widthIdx() - soko.widthIdx(), 2));
         }
         return result;
     }
@@ -412,6 +443,6 @@ public class State implements Comparable {
     @Override
     public int compareTo(Object o) {
         State state = (State) o;
-        return Double.compare(this.f(), state.f());
+        return Double.compare(this.f, state.f);
     }
 }

@@ -46,6 +46,8 @@ public class StateSpace {
         open.add(initialState);
         openSet.put(initialState, initialState);
 
+        long avgPolling = 0, avgComplete = 0, avgSwapping = 0, avgRevealing = 0, avgFCalc = 0, avgRevealingAStar = 0;
+        Stopwatch stopwatch = new Stopwatch();
         while (open.size() != 0) {
             iterations++;
             if (open.size() > maxOpenCount){
@@ -58,27 +60,47 @@ public class StateSpace {
             }
 
 
+            stopwatch.reset();
             State state = open.poll();
+            avgPolling += stopwatch.end();
 
+            stopwatch.reset();
             if (state.isCompleted()) {
+
+                System.out.println(avgPolling);
+                System.out.println(avgComplete);
+                System.out.println(avgSwapping);
+                System.out.println(avgRevealing);
+                System.out.println(avgFCalc);
+                System.out.println(avgRevealingAStar);
+
                 board.setState(initialState);
-                System.out.println(closed.size());
-                System.out.println(state);
                 maxCloseCount = closed.size();
                 List<State> solution = state.getSolutionPath(new ArrayList<>());
                 Collections.reverse(solution);
                 return solution;
             }
+            avgComplete += stopwatch.end();
 
+            stopwatch.reset();
             closed.put(state, state);
             openSet.remove(state);
+            avgSwapping += stopwatch.end();
 
+
+            stopwatch.reset();
             List<State> revealedStates = state.revealState();
+            avgRevealing += stopwatch.end();
+
+
             revealingCount++;
             revealedStatesCount += revealedStates.size();
+
+            stopwatch.reset();
             revealedStates.forEach(state1 -> state1.setF(state1.f()));
+            avgFCalc += stopwatch.end();
 
-
+            stopwatch.reset();
             for (State childState : revealedStates) {
                 State inOpen = openSet.get(childState);
                 State inClosed = closed.get(childState);
@@ -86,18 +108,23 @@ public class StateSpace {
                     open.add(childState);
                     openSet.put(childState, childState);
                 }
-                else if (inOpen != null && childState.getF() < inOpen.getF()) {
-                    openSet.get(childState).setF(childState.f());
-                    openSet.get(childState).setParent(state);
+                else if (inOpen != null
+                        && childState.getF() < inOpen.getF()) {
+                    inOpen.setF(childState.getF());
+                    inOpen.setParent(state);
                 }
-                else if (inClosed != null && childState.getF() < inClosed.getF()) {
-                    closed.remove(childState);
-                    openSet.put(childState, childState);
-                    openSet.get(childState).setF(childState.f());
-                    openSet.get(childState).setParent(state);
+                else if (inClosed != null
+                        && childState.getF() < inClosed.getF()) {
+                    closed.remove(inClosed);
+                    open.add(inClosed);
+                    openSet.put(inClosed, inClosed);
+                    inClosed.setF(childState.getF());
+                    inClosed.setParent(state);
                 }
             }
+            avgRevealingAStar += stopwatch.end();
         }
+
         board.setState(initialState);
         return new ArrayList<>();
     }

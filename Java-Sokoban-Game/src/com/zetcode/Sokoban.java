@@ -22,21 +22,21 @@ public class Sokoban extends JFrame {
         StateSpace stateSpace = new StateSpace(board);
         long time = System.currentTimeMillis();
         List<State> solution = stateSpace.getSolution();
+        if (solution.size() != 0) {
 
-
-        System.out.println("RESULTS");
-        solution.forEach(state -> state.getSoko().loadImage());
-        solution.forEach(state -> state.getBaggs().forEach(baggage -> baggage.loadImage()));
-        System.out.println("Finished for = " + (System.currentTimeMillis() - time) + " millis");
-        System.out.println("Iterations = " + stateSpace.iterations);
-        System.out.println("Steps count = " + solution.size());
-        System.out.println("Revealing count = " + stateSpace.revealingCount);
-        System.out.println("Revealed states = " + stateSpace.revealedStatesCount);
-        System.out.println("Max states count = " + stateSpace.maxStatesCount);
-        System.out.println("Max opened states = " + stateSpace.maxOpenCount);
-        System.out.println("Max closed states = " + stateSpace.maxCloseCount);
-        board.addSolution(solution);
-
+            System.out.println("RESULTS");
+            solution.forEach(state -> state.getSoko().loadImage());
+            solution.forEach(state -> state.getBaggs().forEach(baggage -> baggage.loadImage()));
+            System.out.println("Finished for = " + (System.currentTimeMillis() - time) + " millis");
+            System.out.println("Iterations = " + stateSpace.iterations);
+            System.out.println("Steps count = " + solution.size());
+            System.out.println("Revealing count = " + stateSpace.revealingCount);
+            System.out.println("Revealed states = " + stateSpace.revealedStatesCount);
+            System.out.println("Max states count = " + stateSpace.maxStatesCount);
+            System.out.println("Max opened states = " + stateSpace.maxOpenCount);
+            System.out.println("Max closed states = " + stateSpace.maxCloseCount);
+            board.addSolution(solution);
+        }
         setTitle("Sokoban");
         setSize(board.getBoardWidth() + OFFSET,
                 board.getBoardHeight() + 2 * OFFSET);
