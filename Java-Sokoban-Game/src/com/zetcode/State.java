@@ -336,7 +336,7 @@ public class State implements Comparable {
     }
 
     public double f() {
-        return stepCount + h5();
+        return stepCount;
     }
 
     //насколько удалено к конечной позиции
@@ -353,8 +353,10 @@ public class State implements Comparable {
     private double h5() {
         double result = 0;
         for (Area area : areas) {
-            result += baggs.stream().mapToInt(baggage -> Math.abs(baggage.widthIdx() - area.widthIdx()) + Math.abs(baggage.heightIdx() - area.heightIdx())
-            ).min().orElse(0);
+            result += baggs.stream()
+                    .mapToInt(baggage -> Math.abs(baggage.widthIdx() - area.widthIdx()) + Math.abs(baggage.heightIdx() - area.heightIdx()))
+                    .min()
+                    .orElse(0);
         }
         return result;
     }

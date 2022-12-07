@@ -52,15 +52,6 @@ public class Board extends JPanel {
 //            ,"####.####\n"
 //            ,"#########\n" };
 
-//    private String[] level = {
-//             "#########\n"
-//            ,"#    ####\n"
-//            ,"# $$ ####\n"
-//            ,"# ...####\n"
-//            ,"#  #$ ###\n"
-//            ,"## $  . #\n"
-//            ,"## @    #\n"
-//            ,"#########\n"};
 
 //    private String[] level = {
 //             "    ######          \n"
@@ -84,30 +75,63 @@ public class Board extends JPanel {
 //             ,"#### # ## #   #####\n"
 //             ,"##   # ## #####  .#\n"
 //             ,"## $             .#\n"
-//             ,"###### ### #@##  .#\n"
+//             ,"############@##  .#\n"
 //             ,"    ##     ########\n"
 //             ,"    ########       \n"};
 
 //    private String[] level
-//            = {"##################\n"
-//              ,"##         @  $ .#\n"
-//              ,"##         $    .#\n"
-//              ,"##      $       .#\n"
-//              ,"##################\n"};
+//            = {"############\n"
+//              ,"## @     # .#\n"
+//              ,"##  $       #\n"
+//              ,"##          #\n"
+//              ,"############\n"};
+
+//    private String[] level
+//            = {"###############\n"
+//              ,"## @        #.#\n"
+//              ,"##      $  $# #\n"
+//              ,"########      #\n"
+//              ,"##.           #\n"
+//              ,"###############\n"};
 
     private String[] level
-            = {"#####\n"
-              ,"#  .#\n"
-              ,"# $ #\n"
-              ,"#@  #\n"
-              ,"#####\n"};
+            = {"#############\n"
+              ,"##    @  $ .#\n"
+              ,"##          #\n"
+              ,"#############\n"};
+
+
+//    private String[] level
+//            = {"#############\n"
+//              ,"##    @   #.#\n"
+//              ,"##    $   # #\n"
+//              ,"##        # #\n"
+//              ,"#############\n"};
+
+//    private String[] level = {
+//            "#########\n"
+//            ,"#    ####\n"
+//            ,"# $$ ####\n"
+//            ,"# ...####\n"
+//            ,"#  #$ ###\n"
+//            ,"## $  . #\n"
+//            ,"## @    #\n"
+//            ,"#########\n"};
+
+
+//    private String[] level
+//            = {"#####\n"
+//              ,"#  .#\n"
+//              ,"# $ #\n"
+//              ,"#@  #\n"
+//              ,"#####\n"};
 
     public Board() {
 
         initBoard();
     }
 
-    private void initBoard() {
+    public void initBoard() {
 
         addKeyListener(new TAdapter());
         setFocusable(true);
@@ -137,6 +161,8 @@ public class Board extends JPanel {
         Baggage b;
         Area a;
 
+        int baggId = 0;
+        int actorId = 0;
         int height = level.length;
         int width = level[0].length();
 
@@ -156,6 +182,7 @@ public class Board extends JPanel {
 
                     case '$':
                         b = new Baggage(j, i, Cell.FLOOR);
+                        b.setId(baggId++);
                         state.getBaggs().add(b);
                         state.getField()[j][i] = Cell.BAGGAGE;
                         break;
@@ -167,7 +194,9 @@ public class Board extends JPanel {
                         break;
 
                     case '@':
-                        state.setSoko(new Player(j, i, Cell.FLOOR));
+                        Player soko = new Player(j, i, Cell.FLOOR);
+                        soko.setId(actorId++);
+                        state.setSoko(soko);
                         state.getField()[j][i] = Cell.SOKO;
                         break;
 
@@ -365,9 +394,11 @@ public class Board extends JPanel {
     }
 
     public void addSolution(List<State> solutionList) {
-        this.solutionList = solutionList;
-        this.iteratorOnSolution = solutionList.iterator();
-        this.state = iteratorOnSolution.next();
+        if (solutionList != null && solutionList.size() > 0) {
+            this.solutionList = solutionList;
+            this.iteratorOnSolution = solutionList.iterator();
+            this.state = iteratorOnSolution.next();
+        }
     }
 
     public ArrayList<Wall> getWalls() {
@@ -422,6 +453,53 @@ public class Board extends JPanel {
 
     }
 
+    public List<State> generateGoalStatesForSubTask() {
+        List<State> goalStates = new ArrayList<>();
+        ArrayList<Baggage> baggagesOnAreas = new ArrayList<>();
+
+        ArrayList<Area> areasSubTasks = (ArrayList<Area>) areas.clone();
+        areasSubTasks.removeAll(areas.subList(areas.size() / 2, areas.size()));
+
+        for(Area area : areasSubTasks){
+            baggagesOnAreas.add(new Baggage(area.heightIdx(), area.widthIdx(), Cell.AREA));
+        }
+
+        for(Baggage baggage : baggagesOnAreas){
+
+            if (state.getField()[baggage.heightIdx() - 1][baggage.widthIdx()] == Cell.FLOOR) {
+                State newState = new State(this, null, -1, state.getField().clone());
+                newState.setBaggs(baggagesOnAreas);
+                Player player = new Player(baggage.heightIdx() - 1, baggage.widthIdx(), Cell.FLOOR);
+                newState.setSoko(player);
+                goalStates.add(newState);
+            }
+            if (state.getField()[baggage.heightIdx() + 1][baggage.widthIdx()] == Cell.FLOOR) {
+                State newState = new State(this, null, -1, state.getField().clone());
+                newState.setBaggs(baggagesOnAreas);
+                Player player = new Player(baggage.heightIdx() + 1, baggage.widthIdx(), Cell.FLOOR);
+                newState.setSoko(player);
+                goalStates.add(newState);
+            }
+            if (state.getField()[baggage.heightIdx()][baggage.widthIdx() - 1] == Cell.FLOOR) {
+                State newState = new State(this, null, -1, state.getField().clone());
+                newState.setBaggs(baggagesOnAreas);
+                Player player = new Player(baggage.heightIdx(), baggage.widthIdx() - 1, Cell.FLOOR);
+                newState.setSoko(player);
+                goalStates.add(newState);
+            }
+            if (state.getField()[baggage.heightIdx()][baggage.widthIdx() + 1] == Cell.FLOOR) {
+                State newState = new State(this, null, -1, state.getField().clone());
+                newState.setBaggs(baggagesOnAreas);
+                Player player = new Player(baggage.heightIdx(), baggage.widthIdx() + 1, Cell.FLOOR);
+                newState.setSoko(player);
+                goalStates.add(newState);
+            }
+        }
+        goalStates.forEach(State::updateField);
+
+        return goalStates;
+
+    }
     private class TAdapter extends KeyAdapter {
 
         @Override

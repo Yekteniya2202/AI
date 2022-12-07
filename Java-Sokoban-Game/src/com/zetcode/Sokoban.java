@@ -22,7 +22,6 @@ public class Sokoban extends JFrame {
         StateSpace stateSpace = new StateSpace(board);
         long time = System.currentTimeMillis();
         List<State> solution = stateSpace.getSolution();
-        if (solution.size() != 0) {
 
             System.out.println("RESULTS");
             solution.forEach(state -> state.getSoko().loadImage());
@@ -36,7 +35,7 @@ public class Sokoban extends JFrame {
             System.out.println("Max opened states = " + stateSpace.maxOpenCount);
             System.out.println("Max closed states = " + stateSpace.maxCloseCount);
             board.addSolution(solution);
-        }
+
         setTitle("Sokoban");
         setSize(board.getBoardWidth() + OFFSET,
                 board.getBoardHeight() + 2 * OFFSET);

@@ -5,6 +5,16 @@ import javax.swing.ImageIcon;
 
 public class Player extends Actor {
 
+    private int id;
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
     public Player(int heightIdx, int widthIdx, Cell standsOn) {
         super(heightIdx, widthIdx, standsOn);
 
@@ -48,7 +58,9 @@ public class Player extends Actor {
 
     @Override
     public Player clone() {
-        return new Player(super.heightIdx(), super.widthIdx(), false, super.getStandsOn());
+        Player newPlayer = new Player(super.heightIdx(), super.widthIdx(), false, super.getStandsOn());
+        newPlayer.setId(this.id);
+        return newPlayer;
     }
 
 }
